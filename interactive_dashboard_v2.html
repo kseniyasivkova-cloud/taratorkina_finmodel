@@ -1,0 +1,1490 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Финансовая модель Taratorkina School - Расширенная версия</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .scenario-tabs {
+            display: flex;
+            background: #f6f8fa;
+            padding: 10px 20px 0 20px;
+            border-bottom: 2px solid #e1e4e8;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: transparent;
+            border: none;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #586069;
+            transition: all 0.2s;
+            margin-right: 5px;
+        }
+
+        .tab:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .tab.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 -2px 4px rgba(0,0,0,0.05);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 0;
+        }
+
+        .controls {
+            background: #fafbfc;
+            border-right: 1px solid #e1e4e8;
+            padding: 25px;
+            overflow-y: auto;
+            max-height: calc(100vh - 280px);
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+        }
+
+        .control-group h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #24292e;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .control-item {
+            margin-bottom: 18px;
+        }
+
+        .control-item label {
+            display: block;
+            font-size: 12px;
+            color: #586069;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .control-item input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #e1e4e8;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .control-item input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .control-item input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .value-display {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 4px;
+        }
+
+        .current-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .range-hint {
+            font-size: 11px;
+            color: #959da5;
+        }
+
+        .charts {
+            padding: 25px;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 18px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .metric-card.negative {
+            border-left-color: #d73a49;
+            background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+        }
+
+        .metric-card.positive {
+            border-left-color: #28a745;
+            background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%);
+        }
+
+        .metric-label {
+            font-size: 11px;
+            color: #586069;
+            margin-bottom: 6px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .metric-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: #24292e;
+        }
+
+        .metric-change {
+            font-size: 11px;
+            color: #586069;
+            margin-top: 4px;
+        }
+
+        .chart-container {
+            margin-bottom: 25px;
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .reset-btn {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 20px;
+        }
+
+        .reset-btn:hover {
+            background: #5568d3;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .scenario-btn {
+            width: 100%;
+            padding: 10px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 8px;
+        }
+
+        .scenario-btn:hover {
+            background: #218838;
+            transform: translateY(-1px);
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .alert.danger {
+            background: #fff5f5;
+            border-left: 4px solid #d73a49;
+            color: #d73a49;
+        }
+
+        .alert.warning {
+            background: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            color: #d97706;
+        }
+
+        .alert.success {
+            background: #f0fff4;
+            border-left: 4px solid #28a745;
+            color: #22863a;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .comparison-card {
+            background: #f6f8fa;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #e1e4e8;
+        }
+
+        .comparison-card h4 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #24292e;
+            display: flex;
+            align-items: center;
+        }
+
+        .comparison-card .icon {
+            width: 32px;
+            height: 32px;
+            margin-right: 10px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .icon.individual {
+            background: #667eea;
+        }
+
+        .icon.group {
+            background: #28a745;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e1e4e8;
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+            font-weight: 700;
+            padding-top: 12px;
+            margin-top: 8px;
+            border-top: 2px solid #24292e;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #586069;
+        }
+
+        .stat-value {
+            font-size: 13px;
+            font-weight: 600;
+            color: #24292e;
+        }
+
+        .stat-value.positive {
+            color: #28a745;
+        }
+
+        .stat-value.negative {
+            color: #d73a49;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💰 Финансовая модель Taratorkina School</h1>
+            <p>Расширенный интерактивный дашборд с анализом сценариев • Рынок Казахстана</p>
+        </div>
+
+        <div class="scenario-tabs">
+            <button class="tab active" onclick="switchTab('combined')">📊 Комбинированная модель</button>
+            <button class="tab" onclick="switchTab('individual')">👤 Только индивидуальные</button>
+            <button class="tab" onclick="switchTab('group')">👥 Только мини-группы</button>
+            <button class="tab" onclick="switchTab('comparison')">⚖️ Сравнение сценариев</button>
+        </div>
+
+        <!-- TAB 1: COMBINED -->
+        <div id="tab_combined" class="tab-content active">
+            <div class="dashboard">
+                <div class="controls">
+                    <div class="control-group">
+                        <h3>💵 Цены на обучение (₽)</h3>
+
+                        <div class="control-item">
+                            <label>Индивид. 60 мин</label>
+                            <input type="range" id="price_indiv_60" min="2000" max="5000" step="100" value="2750">
+                            <div class="value-display">
+                                <span class="current-value" id="val_price_indiv_60">2750 ₽</span>
+                                <span class="range-hint">2000-5000</span>
+                            </div>
+                        </div>
+
+                        <div class="control-item">
+                            <label>Индивид. 90 мин</label>
+                            <input type="range" id="price_indiv_90" min="3000" max="6000" step="100" value="4000">
+                            <div class="value-display">
+                                <span class="current-value" id="val_price_indiv_90">4000 ₽</span>
+                                <span class="range-hint">3000-6000</span>
+                            </div>
+                        </div>
+
+                        <div class="control-item">
+                            <label>Мини-группа 60 мин/чел</label>
+                            <input type="range" id="price_group_60" min="1500" max="3000" step="100" value="2750">
+                            <div class="value-display">
+                                <span class="current-value" id="val_price_group_60">2750 ₽</span>
+                                <span class="range-hint">1500-3000</span>
+                            </div>
+                        </div>
+
+                        <div class="control-item">
+                            <label>Мини-группа 90 мин/чел</label>
+                            <input type="range" id="price_group_90" min="2000" max="4000" step="100" value="4000">
+                            <div class="value-display">
+                                <span class="current-value" id="val_price_group_90">4000 ₽</span>
+                                <span class="range-hint">2000-4000</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <h3>👨‍🏫 Ставки преподавателей (₽)</h3>
+
+                        <div class="control-item">
+                            <label>Индивид. 60 мин</label>
+                            <input type="range" id="teacher_indiv_60" min="1500" max="4000" step="100" value="3000">
+                            <div class="value-display">
+                                <span class="current-value" id="val_teacher_indiv_60">3000 ₽</span>
+                                <span class="range-hint">1500-4000</span>
+                            </div>
+                        </div>
+
+                        <div class="control-item">
+                            <label>Индивид. 90 мин</label>
+                            <input type="range" id="teacher_indiv_90" min="2000" max="5000" step="100" value="4500">
+                            <div class="value-display">
+                                <span class="current-value" id="val_teacher_indiv_90">4500 ₽</span>
+                                <span class="range-hint">2000-5000</span>
+                            </div>
+                        </div>
+
+                        <div class="control-item">
+                            <label>Группа 60 мин (общая)</label>
+                            <input type="range" id="teacher_group_60" min="3000" max="6000" step="100" value="4500">
+                            <div class="value-display">
+                                <span class="current-value" id="val_teacher_group_60">4500 ₽</span>
+                                <span class="range-hint">3000-6000</span>
+                            </div>
+                        </div>
+
+                        <div class="control-item">
+                            <label>Группа 90 мин (общая)</label>
+                            <input type="range" id="teacher_group_90" min="4000" max="8000" step="100" value="6000">
+                            <div class="value-display">
+                                <span class="current-value" id="val_teacher_group_90">6000 ₽</span>
+                                <span class="range-hint">4000-8000</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <h3>💸 Маркетинг и привлечение</h3>
+
+                        <div class="control-item">
+                            <label>CPL - стоимость лида (₽)</label>
+                            <input type="range" id="cpl" min="300" max="1000" step="50" value="500">
+                            <div class="value-display">
+                                <span class="current-value" id="val_cpl">500 ₽</span>
+                                <span class="range-hint">300-1000</span>
+                            </div>
+                        </div>
+
+                        <div class="control-item">
+                            <label>Конверсия лид→клиент (%)</label>
+                            <input type="range" id="conversion" min="5" max="25" step="1" value="12">
+                            <div class="value-display">
+                                <span class="current-value" id="val_conversion">12%</span>
+                                <span class="range-hint">5-25%</span>
+                            </div>
+                        </div>
+
+                        <div class="control-item">
+                            <label style="color: #d73a49; font-weight: 600;">💰 CAC (авторасчёт)</label>
+                            <div class="value-display">
+                                <span class="current-value" id="cac_display" style="font-size: 20px;">4167 ₽</span>
+                                <span class="range-hint">CPL/Конверсия</span>
+                            </div>
+                        </div>
+
+                        <div class="control-item">
+                            <label>Комиссия агентства (%)</label>
+                            <input type="range" id="agency_commission" min="0" max="30" step="1" value="20">
+                            <div class="value-display">
+                                <span class="current-value" id="val_agency_commission">20%</span>
+                                <span class="range-hint">0-30%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <h3>⚙️ Другие параметры</h3>
+
+                        <div class="control-item">
+                            <label>Размер мини-группы (чел)</label>
+                            <input type="range" id="group_size" min="2" max="5" step="1" value="3">
+                            <div class="value-display">
+                                <span class="current-value" id="val_group_size">3 чел</span>
+                                <span class="range-hint">2-5</span>
+                            </div>
+                        </div>
+
+                        <div class="control-item">
+                            <label>Средний LTV (пакетов)</label>
+                            <input type="range" id="avg_packages" min="1.5" max="4" step="0.5" value="2.5">
+                            <div class="value-display">
+                                <span class="current-value" id="val_avg_packages">2.5</span>
+                                <span class="range-hint">1.5-4.0</span>
+                            </div>
+                        </div>
+
+                        <div class="control-item">
+                            <label>Всего студентов/мес</label>
+                            <input type="range" id="total_students" min="20" max="150" step="5" value="50">
+                            <div class="value-display">
+                                <span class="current-value" id="val_total_students">50</span>
+                                <span class="range-hint">20-150</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <h3>👥 Микс студентов (%)</h3>
+
+                        <div class="control-item">
+                            <label>Индивид. 60 мин</label>
+                            <input type="range" id="pct_indiv_60" min="0" max="50" step="5" value="15">
+                            <div class="value-display">
+                                <span class="current-value" id="val_pct_indiv_60">15%</span>
+                                <span class="range-hint">0-50%</span>
+                            </div>
+                        </div>
+
+                        <div class="control-item">
+                            <label>Индивид. 90 мин</label>
+                            <input type="range" id="pct_indiv_90" min="0" max="50" step="5" value="15">
+                            <div class="value-display">
+                                <span class="current-value" id="val_pct_indiv_90">15%</span>
+                                <span class="range-hint">0-50%</span>
+                            </div>
+                        </div>
+
+                        <div class="control-item">
+                            <label>Группа 60 мин</label>
+                            <input type="range" id="pct_group_60" min="0" max="70" step="5" value="40">
+                            <div class="value-display">
+                                <span class="current-value" id="val_pct_group_60">40%</span>
+                                <span class="range-hint">0-70%</span>
+                            </div>
+                        </div>
+
+                        <div class="control-item">
+                            <label>Группа 90 мин</label>
+                            <input type="range" id="pct_group_90" min="0" max="70" step="5" value="30">
+                            <div class="value-display">
+                                <span class="current-value" id="val_pct_group_90">30%</span>
+                                <span class="range-hint">0-70%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <h3>🎯 Быстрые сценарии</h3>
+                        <button class="scenario-btn" onclick="applyScenario('optimal')">🟢 Оптимальный (цена +27%, ставка -17%)</button>
+                        <button class="scenario-btn" onclick="applyScenario('no_agency')">🔵 Без агентства (комиссия 0%)</button>
+                        <button class="scenario-btn" onclick="applyScenario('premium')">💎 Премиум (цена +45%, качество)</button>
+                        <button class="scenario-btn" onclick="applyScenario('budget')">💰 Бюджетный (ставка -33%)</button>
+                    </div>
+
+                    <button class="reset-btn" onclick="resetToDefaults()">🔄 Сбросить к базовым значениям</button>
+                </div>
+
+                <div class="charts">
+                    <div id="alert_container_combined"></div>
+
+                    <div class="metrics">
+                        <div class="metric-card" id="metric_revenue">
+                            <div class="metric-label">Выручка/мес</div>
+                            <div class="metric-value" id="metric_revenue_val">-</div>
+                        </div>
+                        <div class="metric-card" id="metric_profit">
+                            <div class="metric-label">Чистая прибыль</div>
+                            <div class="metric-value" id="metric_profit_val">-</div>
+                            <div class="metric-change" id="metric_profit_pct">-</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">CAC</div>
+                            <div class="metric-value" id="metric_cac_val">-</div>
+                            <div class="metric-change" id="metric_cac_detail">-</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Точка безубыточности</div>
+                            <div class="metric-value" id="metric_break_even">-</div>
+                        </div>
+                    </div>
+
+                    <div class="chart-container">
+                        <div id="chart_margin"></div>
+                    </div>
+
+                    <div class="chart-container">
+                        <div id="chart_pnl"></div>
+                    </div>
+
+                    <div class="chart-container">
+                        <div id="chart_structure"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: INDIVIDUAL ONLY -->
+        <div id="tab_individual" class="tab-content">
+            <div class="dashboard">
+                <div class="controls">
+                    <div class="alert success">
+                        <strong>👤 Модель "Только индивидуальные"</strong><br>
+                        100% студентов на индивидуальных занятиях. Микс 60/90 мин регулируется автоматически.
+                    </div>
+
+                    <div class="control-item">
+                        <label>Доля занятий 60 мин (%)</label>
+                        <input type="range" id="indiv_mix_60" min="0" max="100" step="10" value="50">
+                        <div class="value-display">
+                            <span class="current-value" id="val_indiv_mix_60">50%</span>
+                            <span class="range-hint">0-100%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="charts">
+                    <div id="alert_container_individual"></div>
+
+                    <div class="metrics">
+                        <div class="metric-card">
+                            <div class="metric-label">Выручка/мес</div>
+                            <div class="metric-value" id="metric_revenue_indiv">-</div>
+                        </div>
+                        <div class="metric-card" id="metric_profit_indiv_card">
+                            <div class="metric-label">Чистая прибыль</div>
+                            <div class="metric-value" id="metric_profit_indiv">-</div>
+                            <div class="metric-change" id="metric_profit_pct_indiv">-</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Средняя маржа/студент</div>
+                            <div class="metric-value" id="metric_avg_margin_indiv">-</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Точка безубыточности</div>
+                            <div class="metric-value" id="metric_break_even_indiv">-</div>
+                        </div>
+                    </div>
+
+                    <div class="chart-container">
+                        <div id="chart_indiv_margin"></div>
+                    </div>
+
+                    <div class="chart-container">
+                        <div id="chart_indiv_pnl"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: GROUP ONLY -->
+        <div id="tab_group" class="tab-content">
+            <div class="dashboard">
+                <div class="controls">
+                    <div class="alert success">
+                        <strong>👥 Модель "Только мини-группы"</strong><br>
+                        100% студентов в мини-группах. Микс 60/90 мин регулируется автоматически.
+                    </div>
+
+                    <div class="control-item">
+                        <label>Доля занятий 60 мин (%)</label>
+                        <input type="range" id="group_mix_60" min="0" max="100" step="10" value="50">
+                        <div class="value-display">
+                            <span class="current-value" id="val_group_mix_60">50%</span>
+                            <span class="range-hint">0-100%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="charts">
+                    <div id="alert_container_group"></div>
+
+                    <div class="metrics">
+                        <div class="metric-card">
+                            <div class="metric-label">Выручка/мес</div>
+                            <div class="metric-value" id="metric_revenue_group">-</div>
+                        </div>
+                        <div class="metric-card" id="metric_profit_group_card">
+                            <div class="metric-label">Чистая прибыль</div>
+                            <div class="metric-value" id="metric_profit_group">-</div>
+                            <div class="metric-change" id="metric_profit_pct_group">-</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Средняя маржа/студент</div>
+                            <div class="metric-value" id="metric_avg_margin_group">-</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Точка безубыточности</div>
+                            <div class="metric-value" id="metric_break_even_group">-</div>
+                        </div>
+                    </div>
+
+                    <div class="chart-container">
+                        <div id="chart_group_margin"></div>
+                    </div>
+
+                    <div class="chart-container">
+                        <div id="chart_group_pnl"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: COMPARISON -->
+        <div id="tab_comparison" class="tab-content">
+            <div class="charts" style="padding: 30px;">
+                <h2 style="margin-bottom: 20px; color: #24292e;">⚖️ Сравнение всех сценариев</h2>
+
+                <div class="comparison-grid">
+                    <div class="comparison-card">
+                        <h4>
+                            <div class="icon individual">👤</div>
+                            Только индивидуальные
+                        </h4>
+                        <div id="comparison_individual_stats"></div>
+                    </div>
+
+                    <div class="comparison-card">
+                        <h4>
+                            <div class="icon group">👥</div>
+                            Только мини-группы
+                        </h4>
+                        <div id="comparison_group_stats"></div>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <div id="chart_comparison"></div>
+                </div>
+
+                <div class="chart-container">
+                    <div id="chart_comparison_revenue"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTab = 'combined';
+
+        const defaults = {
+            price_indiv_60: 2750,
+            price_indiv_90: 4000,
+            price_group_60: 2750,
+            price_group_90: 4000,
+            teacher_indiv_60: 3000,
+            teacher_indiv_90: 4500,
+            teacher_group_60: 4500,
+            teacher_group_90: 6000,
+            group_size: 3,
+            agency_commission: 20,
+            cpl: 500,
+            conversion: 12,
+            avg_packages: 2.5,
+            total_students: 50,
+            pct_indiv_60: 15,
+            pct_indiv_90: 15,
+            pct_group_60: 40,
+            pct_group_90: 30,
+            indiv_mix_60: 50,
+            group_mix_60: 50
+        };
+
+        function switchTab(tabName) {
+            currentTab = tabName;
+
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById('tab_' + tabName).classList.add('active');
+            event.target.classList.add('active');
+
+            // Recalculate
+            calculate();
+        }
+
+        function initControls() {
+            Object.keys(defaults).forEach(key => {
+                const input = document.getElementById(key);
+                const valueDisplay = document.getElementById('val_' + key);
+
+                if (input && valueDisplay) {
+                    input.addEventListener('input', function() {
+                        updateValueDisplay(key, this.value);
+                        calculate();
+                    });
+                    updateValueDisplay(key, input.value);
+                }
+            });
+            calculate();
+        }
+
+        function updateValueDisplay(key, value) {
+            const display = document.getElementById('val_' + key);
+            if (!display) return;
+
+            if (key.includes('price') || key.includes('teacher') || key === 'cpl') {
+                display.textContent = Math.round(value) + ' ₽';
+            } else if (key.includes('pct') || key.includes('mix') || key === 'agency_commission' || key === 'conversion') {
+                display.textContent = value + '%';
+            } else if (key === 'group_size') {
+                display.textContent = value + ' чел';
+            } else if (key === 'total_students') {
+                display.textContent = value;
+            } else {
+                display.textContent = value;
+            }
+        }
+
+        function getParams() {
+            return {
+                price_indiv_60: parseFloat(document.getElementById('price_indiv_60').value),
+                price_indiv_90: parseFloat(document.getElementById('price_indiv_90').value),
+                price_group_60: parseFloat(document.getElementById('price_group_60').value),
+                price_group_90: parseFloat(document.getElementById('price_group_90').value),
+                teacher_indiv_60: parseFloat(document.getElementById('teacher_indiv_60').value),
+                teacher_indiv_90: parseFloat(document.getElementById('teacher_indiv_90').value),
+                teacher_group_60: parseFloat(document.getElementById('teacher_group_60').value),
+                teacher_group_90: parseFloat(document.getElementById('teacher_group_90').value),
+                group_size: parseFloat(document.getElementById('group_size').value),
+                agency_commission: parseFloat(document.getElementById('agency_commission').value) / 100,
+                cpl: parseFloat(document.getElementById('cpl').value),
+                conversion: parseFloat(document.getElementById('conversion').value) / 100,
+                avg_packages: parseFloat(document.getElementById('avg_packages').value),
+                total_students: parseFloat(document.getElementById('total_students').value),
+                pct_indiv_60: parseFloat(document.getElementById('pct_indiv_60').value) / 100,
+                pct_indiv_90: parseFloat(document.getElementById('pct_indiv_90').value) / 100,
+                pct_group_60: parseFloat(document.getElementById('pct_group_60').value) / 100,
+                pct_group_90: parseFloat(document.getElementById('pct_group_90').value) / 100,
+                indiv_mix_60: parseFloat(document.getElementById('indiv_mix_60').value) / 100,
+                group_mix_60: parseFloat(document.getElementById('group_mix_60').value) / 100
+            };
+        }
+
+        function calculate() {
+            if (currentTab === 'combined') {
+                calculateCombined();
+            } else if (currentTab === 'individual') {
+                calculateIndividual();
+            } else if (currentTab === 'group') {
+                calculateGroup();
+            } else if (currentTab === 'comparison') {
+                calculateComparison();
+            }
+        }
+
+        function calculateCombined() {
+            const p = getParams();
+            const cac = p.cpl / p.conversion;
+
+            // Update CAC display
+            document.getElementById('cac_display').textContent = Math.round(cac).toLocaleString('ru-RU') + ' ₽';
+
+            const admin_pct = 0.10;
+
+            const formats = [
+                {
+                    name: 'Индивид. 60 мин',
+                    price: p.price_indiv_60,
+                    teacher: p.teacher_indiv_60,
+                    group_divisor: 1
+                },
+                {
+                    name: 'Индивид. 90 мин',
+                    price: p.price_indiv_90,
+                    teacher: p.teacher_indiv_90,
+                    group_divisor: 1
+                },
+                {
+                    name: 'Группа 60 мин',
+                    price: p.price_group_60,
+                    teacher: p.teacher_group_60,
+                    group_divisor: p.group_size
+                },
+                {
+                    name: 'Группа 90 мин',
+                    price: p.price_group_90,
+                    teacher: p.teacher_group_90,
+                    group_divisor: p.group_size
+                }
+            ];
+
+            const ue = formats.map(f => {
+                const ltv = f.price * 8 * p.avg_packages;
+                const teacher_cost = (f.teacher * 8 * p.avg_packages) / f.group_divisor;
+                const admin = ltv * admin_pct;
+                const agency = ltv * p.agency_commission;
+                const margin = ltv - teacher_cost - admin - cac - agency;
+
+                return {
+                    name: f.name,
+                    ltv: ltv,
+                    teacher: teacher_cost,
+                    admin: admin,
+                    cac: cac,
+                    agency: agency,
+                    margin: margin,
+                    margin_pct: (margin / ltv) * 100
+                };
+            });
+
+            const n_i60 = Math.round(p.total_students * p.pct_indiv_60);
+            const n_i90 = Math.round(p.total_students * p.pct_indiv_90);
+            const n_g60 = Math.round(p.total_students * p.pct_group_60);
+            const n_g90 = Math.round(p.total_students * p.pct_group_90);
+
+            const revenue = n_i60 * p.price_indiv_60 * 8 +
+                           n_i90 * p.price_indiv_90 * 8 +
+                           n_g60 * p.price_group_60 * 8 +
+                           n_g90 * p.price_group_90 * 8;
+
+            const teacher_total = n_i60 * p.teacher_indiv_60 * 8 +
+                                 n_i90 * p.teacher_indiv_90 * 8 +
+                                 n_g60 * (p.teacher_group_60 * 8 / p.group_size) +
+                                 n_g90 * (p.teacher_group_90 * 8 / p.group_size);
+
+            const admin_total = revenue * admin_pct;
+            const cac_total = p.total_students * cac;
+            const agency_total = revenue * p.agency_commission;
+            const profit = revenue - teacher_total - admin_total - cac_total - agency_total;
+            const margin_pct = (profit / revenue) * 100;
+
+            document.getElementById('metric_revenue_val').textContent = 
+                Math.round(revenue).toLocaleString('ru-RU') + ' ₽';
+
+            document.getElementById('metric_profit_val').textContent = 
+                (profit >= 0 ? '+' : '') + Math.round(profit).toLocaleString('ru-RU') + ' ₽';
+
+            document.getElementById('metric_profit_pct').textContent = 
+                'Маржа: ' + (profit >= 0 ? '+' : '') + margin_pct.toFixed(1) + '%';
+
+            const profitCard = document.getElementById('metric_profit');
+            profitCard.className = 'metric-card ' + (profit >= 0 ? 'positive' : 'negative');
+
+            document.getElementById('metric_cac_val').textContent = 
+                Math.round(cac).toLocaleString('ru-RU') + ' ₽';
+
+            document.getElementById('metric_cac_detail').textContent = 
+                'CPL ' + p.cpl + '₽ / CR ' + (p.conversion * 100).toFixed(0) + '%';
+
+            const avg_margin_per_student = profit / p.total_students;
+            const variable_margin_per_student = (revenue - teacher_total) / p.total_students;
+            const fixed_per_student = (admin_total + cac_total + agency_total) / p.total_students;
+            const break_even = Math.ceil((admin_total + agency_total) / (variable_margin_per_student - cac));
+
+            document.getElementById('metric_break_even').textContent = 
+                (break_even > 0 && break_even < 500 ? break_even : 'н/д') + ' студ/мес';
+
+            updateAlert('alert_container_combined', profit, margin_pct, ue);
+            updateCharts(ue, revenue, teacher_total, admin_total, cac_total, agency_total, profit);
+        }
+
+        function calculateIndividual() {
+            const p = getParams();
+            const cac = p.cpl / p.conversion;
+            const admin_pct = 0.10;
+
+            const mix_60 = p.indiv_mix_60;
+            const mix_90 = 1 - mix_60;
+
+            const n_60 = Math.round(p.total_students * mix_60);
+            const n_90 = p.total_students - n_60;
+
+            const ltv_60 = p.price_indiv_60 * 8 * p.avg_packages;
+            const teacher_60 = p.teacher_indiv_60 * 8 * p.avg_packages;
+            const margin_60 = ltv_60 - teacher_60 - ltv_60 * admin_pct - cac - ltv_60 * p.agency_commission;
+
+            const ltv_90 = p.price_indiv_90 * 8 * p.avg_packages;
+            const teacher_90 = p.teacher_indiv_90 * 8 * p.avg_packages;
+            const margin_90 = ltv_90 - teacher_90 - ltv_90 * admin_pct - cac - ltv_90 * p.agency_commission;
+
+            const revenue = n_60 * p.price_indiv_60 * 8 + n_90 * p.price_indiv_90 * 8;
+            const teacher_total = n_60 * p.teacher_indiv_60 * 8 + n_90 * p.teacher_indiv_90 * 8;
+            const admin_total = revenue * admin_pct;
+            const cac_total = p.total_students * cac;
+            const agency_total = revenue * p.agency_commission;
+            const profit = revenue - teacher_total - admin_total - cac_total - agency_total;
+            const margin_pct = (profit / revenue) * 100;
+
+            document.getElementById('metric_revenue_indiv').textContent = 
+                Math.round(revenue).toLocaleString('ru-RU') + ' ₽';
+
+            document.getElementById('metric_profit_indiv').textContent = 
+                (profit >= 0 ? '+' : '') + Math.round(profit).toLocaleString('ru-RU') + ' ₽';
+
+            document.getElementById('metric_profit_pct_indiv').textContent = 
+                'Маржа: ' + (profit >= 0 ? '+' : '') + margin_pct.toFixed(1) + '%';
+
+            const profitCard = document.getElementById('metric_profit_indiv_card');
+            profitCard.className = 'metric-card ' + (profit >= 0 ? 'positive' : 'negative');
+
+            const avg_margin = (n_60 * margin_60 + n_90 * margin_90) / p.total_students;
+            document.getElementById('metric_avg_margin_indiv').textContent = 
+                (avg_margin >= 0 ? '+' : '') + Math.round(avg_margin).toLocaleString('ru-RU') + ' ₽';
+
+            const break_even = profit >= 0 ? 
+                Math.ceil(p.total_students * Math.abs(profit) / profit) :
+                Math.ceil(cac_total / (avg_margin + cac));
+
+            document.getElementById('metric_break_even_indiv').textContent = 
+                (break_even > 0 && break_even < 500 ? break_even : 'н/д') + ' студ/мес';
+
+            const ue = [
+                { name: 'Индивид. 60 мин', margin: margin_60 },
+                { name: 'Индивид. 90 мин', margin: margin_90 }
+            ];
+
+            updateAlert('alert_container_individual', profit, margin_pct, ue);
+
+            // Charts
+            const marginTrace = {
+                x: ['Индивид. 60 мин', 'Индивид. 90 мин'],
+                y: [margin_60, margin_90],
+                type: 'bar',
+                text: [
+                    (margin_60 >= 0 ? '+' : '') + Math.round(margin_60).toLocaleString('ru-RU') + ' ₽',
+                    (margin_90 >= 0 ? '+' : '') + Math.round(margin_90).toLocaleString('ru-RU') + ' ₽'
+                ],
+                textposition: 'outside',
+                marker: {
+                    color: [margin_60 >= 0 ? '#28a745' : '#d73a49', margin_90 >= 0 ? '#28a745' : '#d73a49']
+                }
+            };
+
+            Plotly.newPlot('chart_indiv_margin', [marginTrace], {
+                title: 'Маржа индивидуальных форматов (на 1 студента)',
+                yaxis: {title: 'Маржа (₽)'},
+                height: 350
+            }, {responsive: true});
+
+            const pnlTrace = {
+                x: ['Выручка', 'Преподаватели', 'Админ', 'CAC', 'Агентство', 'Прибыль'],
+                y: [revenue, -teacher_total, -admin_total, -cac_total, -agency_total, profit],
+                type: 'bar',
+                text: [
+                    '+' + Math.round(revenue).toLocaleString('ru-RU'),
+                    '-' + Math.round(teacher_total).toLocaleString('ru-RU'),
+                    '-' + Math.round(admin_total).toLocaleString('ru-RU'),
+                    '-' + Math.round(cac_total).toLocaleString('ru-RU'),
+                    '-' + Math.round(agency_total).toLocaleString('ru-RU'),
+                    (profit >= 0 ? '+' : '') + Math.round(profit).toLocaleString('ru-RU')
+                ],
+                textposition: 'outside',
+                marker: {
+                    color: ['#28a745', '#d73a49', '#d73a49', '#d73a49', '#d73a49', profit >= 0 ? '#28a745' : '#d73a49']
+                }
+            };
+
+            Plotly.newPlot('chart_indiv_pnl', [pnlTrace], {
+                title: 'P&L модели "Только индивидуальные" (50 студентов/мес)',
+                yaxis: {title: 'Сумма (₽)'},
+                height: 350
+            }, {responsive: true});
+        }
+
+        function calculateGroup() {
+            const p = getParams();
+            const cac = p.cpl / p.conversion;
+            const admin_pct = 0.10;
+
+            const mix_60 = p.group_mix_60;
+            const mix_90 = 1 - mix_60;
+
+            const n_60 = Math.round(p.total_students * mix_60);
+            const n_90 = p.total_students - n_60;
+
+            const ltv_60 = p.price_group_60 * 8 * p.avg_packages;
+            const teacher_60 = (p.teacher_group_60 * 8 * p.avg_packages) / p.group_size;
+            const margin_60 = ltv_60 - teacher_60 - ltv_60 * admin_pct - cac - ltv_60 * p.agency_commission;
+
+            const ltv_90 = p.price_group_90 * 8 * p.avg_packages;
+            const teacher_90 = (p.teacher_group_90 * 8 * p.avg_packages) / p.group_size;
+            const margin_90 = ltv_90 - teacher_90 - ltv_90 * admin_pct - cac - ltv_90 * p.agency_commission;
+
+            const revenue = n_60 * p.price_group_60 * 8 + n_90 * p.price_group_90 * 8;
+            const teacher_total = n_60 * teacher_60 + n_90 * teacher_90;
+            const admin_total = revenue * admin_pct;
+            const cac_total = p.total_students * cac;
+            const agency_total = revenue * p.agency_commission;
+            const profit = revenue - teacher_total - admin_total - cac_total - agency_total;
+            const margin_pct = (profit / revenue) * 100;
+
+            document.getElementById('metric_revenue_group').textContent = 
+                Math.round(revenue).toLocaleString('ru-RU') + ' ₽';
+
+            document.getElementById('metric_profit_group').textContent = 
+                (profit >= 0 ? '+' : '') + Math.round(profit).toLocaleString('ru-RU') + ' ₽';
+
+            document.getElementById('metric_profit_pct_group').textContent = 
+                'Маржа: ' + (profit >= 0 ? '+' : '') + margin_pct.toFixed(1) + '%';
+
+            const profitCard = document.getElementById('metric_profit_group_card');
+            profitCard.className = 'metric-card ' + (profit >= 0 ? 'positive' : 'negative');
+
+            const avg_margin = (n_60 * margin_60 + n_90 * margin_90) / p.total_students;
+            document.getElementById('metric_avg_margin_group').textContent = 
+                (avg_margin >= 0 ? '+' : '') + Math.round(avg_margin).toLocaleString('ru-RU') + ' ₽';
+
+            const break_even = avg_margin > 0 ? 
+                Math.ceil((admin_total + agency_total) / avg_margin) : 'н/д';
+
+            document.getElementById('metric_break_even_group').textContent = 
+                (break_even !== 'н/д' && break_even < 500 ? break_even : 'н/д') + ' студ/мес';
+
+            const ue = [
+                { name: 'Группа 60 мин', margin: margin_60 },
+                { name: 'Группа 90 мин', margin: margin_90 }
+            ];
+
+            updateAlert('alert_container_group', profit, margin_pct, ue);
+
+            // Charts
+            const marginTrace = {
+                x: ['Мини-группа 60 мин', 'Мини-группа 90 мин'],
+                y: [margin_60, margin_90],
+                type: 'bar',
+                text: [
+                    (margin_60 >= 0 ? '+' : '') + Math.round(margin_60).toLocaleString('ru-RU') + ' ₽',
+                    (margin_90 >= 0 ? '+' : '') + Math.round(margin_90).toLocaleString('ru-RU') + ' ₽'
+                ],
+                textposition: 'outside',
+                marker: {
+                    color: [margin_60 >= 0 ? '#28a745' : '#d73a49', margin_90 >= 0 ? '#28a745' : '#d73a49']
+                }
+            };
+
+            Plotly.newPlot('chart_group_margin', [marginTrace], {
+                title: 'Маржа мини-групп (на 1 студента)',
+                yaxis: {title: 'Маржа (₽)'},
+                height: 350
+            }, {responsive: true});
+
+            const pnlTrace = {
+                x: ['Выручка', 'Преподаватели', 'Админ', 'CAC', 'Агентство', 'Прибыль'],
+                y: [revenue, -teacher_total, -admin_total, -cac_total, -agency_total, profit],
+                type: 'bar',
+                text: [
+                    '+' + Math.round(revenue).toLocaleString('ru-RU'),
+                    '-' + Math.round(teacher_total).toLocaleString('ru-RU'),
+                    '-' + Math.round(admin_total).toLocaleString('ru-RU'),
+                    '-' + Math.round(cac_total).toLocaleString('ru-RU'),
+                    '-' + Math.round(agency_total).toLocaleString('ru-RU'),
+                    (profit >= 0 ? '+' : '') + Math.round(profit).toLocaleString('ru-RU')
+                ],
+                textposition: 'outside',
+                marker: {
+                    color: ['#28a745', '#d73a49', '#d73a49', '#d73a49', '#d73a49', profit >= 0 ? '#28a745' : '#d73a49']
+                }
+            };
+
+            Plotly.newPlot('chart_group_pnl', [pnlTrace], {
+                title: 'P&L модели "Только мини-группы" (50 студентов/мес)',
+                yaxis: {title: 'Сумма (₽)'},
+                height: 350
+            }, {responsive: true});
+        }
+
+        function calculateComparison() {
+            const p = getParams();
+            const cac = p.cpl / p.conversion;
+            const admin_pct = 0.10;
+
+            // Individual model
+            const indiv_revenue = p.total_students * ((p.indiv_mix_60 * p.price_indiv_60 + (1-p.indiv_mix_60) * p.price_indiv_90) * 8);
+            const indiv_teacher = p.total_students * ((p.indiv_mix_60 * p.teacher_indiv_60 + (1-p.indiv_mix_60) * p.teacher_indiv_90) * 8);
+            const indiv_profit = indiv_revenue - indiv_teacher - indiv_revenue * admin_pct - p.total_students * cac - indiv_revenue * p.agency_commission;
+            const indiv_margin_pct = (indiv_profit / indiv_revenue) * 100;
+
+            // Group model
+            const group_revenue = p.total_students * ((p.group_mix_60 * p.price_group_60 + (1-p.group_mix_60) * p.price_group_90) * 8);
+            const group_teacher = p.total_students * ((p.group_mix_60 * p.teacher_group_60 / p.group_size + (1-p.group_mix_60) * p.teacher_group_90 / p.group_size) * 8);
+            const group_profit = group_revenue - group_teacher - group_revenue * admin_pct - p.total_students * cac - group_revenue * p.agency_commission;
+            const group_margin_pct = (group_profit / group_revenue) * 100;
+
+            // Update comparison stats
+            document.getElementById('comparison_individual_stats').innerHTML = `
+                <div class="stat-row">
+                    <span class="stat-label">Выручка/мес</span>
+                    <span class="stat-value">${Math.round(indiv_revenue).toLocaleString('ru-RU')} ₽</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Расход преподаватели</span>
+                    <span class="stat-value">−${Math.round(indiv_teacher).toLocaleString('ru-RU')} ₽</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">CAC всего</span>
+                    <span class="stat-value">−${Math.round(p.total_students * cac).toLocaleString('ru-RU')} ₽</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Чистая прибыль</span>
+                    <span class="stat-value ${indiv_profit >= 0 ? 'positive' : 'negative'}">
+                        ${(indiv_profit >= 0 ? '+' : '')}${Math.round(indiv_profit).toLocaleString('ru-RU')} ₽
+                    </span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Маржинальность</span>
+                    <span class="stat-value ${indiv_margin_pct >= 0 ? 'positive' : 'negative'}">
+                        ${indiv_margin_pct.toFixed(1)}%
+                    </span>
+                </div>
+            `;
+
+            document.getElementById('comparison_group_stats').innerHTML = `
+                <div class="stat-row">
+                    <span class="stat-label">Выручка/мес</span>
+                    <span class="stat-value">${Math.round(group_revenue).toLocaleString('ru-RU')} ₽</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Расход преподаватели</span>
+                    <span class="stat-value">−${Math.round(group_teacher).toLocaleString('ru-RU')} ₽</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">CAC всего</span>
+                    <span class="stat-value">−${Math.round(p.total_students * cac).toLocaleString('ru-RU')} ₽</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Чистая прибыль</span>
+                    <span class="stat-value ${group_profit >= 0 ? 'positive' : 'negative'}">
+                        ${(group_profit >= 0 ? '+' : '')}${Math.round(group_profit).toLocaleString('ru-RU')} ₽
+                    </span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Маржинальность</span>
+                    <span class="stat-value ${group_margin_pct >= 0 ? 'positive' : 'negative'}">
+                        ${group_margin_pct.toFixed(1)}%
+                    </span>
+                </div>
+            `;
+
+            // Chart: Profit comparison
+            const compTrace = {
+                x: ['Только индивидуальные', 'Только мини-группы'],
+                y: [indiv_profit, group_profit],
+                type: 'bar',
+                text: [
+                    (indiv_profit >= 0 ? '+' : '') + Math.round(indiv_profit).toLocaleString('ru-RU') + ' ₽ (' + indiv_margin_pct.toFixed(1) + '%)',
+                    (group_profit >= 0 ? '+' : '') + Math.round(group_profit).toLocaleString('ru-RU') + ' ₽ (' + group_margin_pct.toFixed(1) + '%)'
+                ],
+                textposition: 'outside',
+                marker: {
+                    color: [indiv_profit >= 0 ? '#667eea' : '#d73a49', group_profit >= 0 ? '#28a745' : '#d73a49']
+                }
+            };
+
+            Plotly.newPlot('chart_comparison', [compTrace], {
+                title: 'Сравнение прибыли сценариев (50 студентов/мес)',
+                yaxis: {title: 'Чистая прибыль (₽)'},
+                height: 400
+            }, {responsive: true});
+
+            // Chart: Revenue breakdown
+            const revenueTrace = {
+                x: ['Индивидуальные', 'Индивидуальные', 'Мини-группы', 'Мини-группы'],
+                y: [indiv_revenue, indiv_teacher, group_revenue, group_teacher],
+                type: 'bar',
+                name: ['Выручка', 'Расходы', 'Выручка', 'Расходы'],
+                marker: {
+                    color: ['#667eea', '#d73a49', '#28a745', '#f59e0b']
+                },
+                text: [
+                    'Выручка: ' + Math.round(indiv_revenue).toLocaleString('ru-RU') + '₽',
+                    'Расходы: ' + Math.round(indiv_teacher).toLocaleString('ru-RU') + '₽',
+                    'Выручка: ' + Math.round(group_revenue).toLocaleString('ru-RU') + '₽',
+                    'Расходы: ' + Math.round(group_teacher).toLocaleString('ru-RU') + '₽'
+                ],
+                textposition: 'inside'
+            };
+
+            Plotly.newPlot('chart_comparison_revenue', [{
+                x: ['Индивидуальные', 'Мини-группы'],
+                y: [indiv_revenue, group_revenue],
+                name: 'Выручка',
+                type: 'bar',
+                marker: {color: '#667eea'}
+            }, {
+                x: ['Индивидуальные', 'Мини-группы'],
+                y: [indiv_teacher + indiv_revenue * (admin_pct + p.agency_commission) + p.total_students * cac, 
+                    group_teacher + group_revenue * (admin_pct + p.agency_commission) + p.total_students * cac],
+                name: 'Расходы',
+                type: 'bar',
+                marker: {color: '#d73a49'}
+            }], {
+                title: 'Выручка vs Расходы по сценариям',
+                yaxis: {title: 'Сумма (₽)'},
+                barmode: 'group',
+                height: 400
+            }, {responsive: true});
+        }
+
+        function updateAlert(containerId, profit, margin_pct, ue) {
+            const container = document.getElementById(containerId);
+            let alertClass = '';
+            let alertText = '';
+
+            if (profit < 0) {
+                alertClass = 'danger';
+                alertText = '<strong>🔴 Модель убыточна!</strong> Чистый убыток ' + 
+                           Math.round(Math.abs(profit)).toLocaleString('ru-RU') + ' ₽/мес.';
+            } else if (margin_pct < 15) {
+                alertClass = 'warning';
+                alertText = '<strong>🟡 Низкая маржинальность</strong> (' + margin_pct.toFixed(1) + '%).';
+            } else {
+                alertClass = 'success';
+                alertText = '<strong>🟢 Модель прибыльна</strong> с маржой ' + margin_pct.toFixed(1) + '%. ';
+                const negativeFormats = ue.filter(f => f.margin < 0);
+                if (negativeFormats.length > 0) {
+                    alertText += 'Убыточные: ' + negativeFormats.map(f => f.name).join(', ') + '.';
+                }
+            }
+
+            container.innerHTML = '<div class="alert ' + alertClass + '">' + alertText + '</div>';
+        }
+
+        function updateCharts(ue, revenue, teacher, admin, cac, agency, profit) {
+            const marginTrace = {
+                x: ue.map(f => f.name),
+                y: ue.map(f => f.margin),
+                type: 'bar',
+                text: ue.map(f => (f.margin >= 0 ? '+' : '') + Math.round(f.margin).toLocaleString('ru-RU') + ' ₽'),
+                textposition: 'outside',
+                marker: {
+                    color: ue.map(f => f.margin >= 0 ? '#28a745' : '#d73a49')
+                }
+            };
+
+            Plotly.newPlot('chart_margin', [marginTrace], {
+                title: 'Чистая маржа по форматам (на 1 студента)',
+                yaxis: {title: 'Маржа (₽)'},
+                height: 350
+            }, {responsive: true});
+
+            const pnlTrace = {
+                x: ['Выручка', 'Преподаватели', 'Админ', 'CAC', 'Агентство', 'Прибыль'],
+                y: [revenue, -teacher, -admin, -cac, -agency, profit],
+                type: 'bar',
+                text: [
+                    '+' + Math.round(revenue).toLocaleString('ru-RU'),
+                    '-' + Math.round(teacher).toLocaleString('ru-RU'),
+                    '-' + Math.round(admin).toLocaleString('ru-RU'),
+                    '-' + Math.round(cac).toLocaleString('ru-RU'),
+                    '-' + Math.round(agency).toLocaleString('ru-RU'),
+                    (profit >= 0 ? '+' : '') + Math.round(profit).toLocaleString('ru-RU')
+                ],
+                textposition: 'outside',
+                marker: {
+                    color: ['#28a745', '#d73a49', '#d73a49', '#d73a49', '#d73a49', profit >= 0 ? '#28a745' : '#d73a49']
+                }
+            };
+
+            Plotly.newPlot('chart_pnl', [pnlTrace], {
+                title: 'P&L за месяц',
+                yaxis: {title: 'Сумма (₽)'},
+                height: 350
+            }, {responsive: true});
+
+            const formats = ue.map(f => f.name);
+            const traces = [
+                {
+                    name: 'LTV',
+                    x: formats,
+                    y: ue.map(f => f.ltv),
+                    type: 'bar',
+                    marker: {color: '#28a745'}
+                },
+                {
+                    name: 'Преподаватель',
+                    x: formats,
+                    y: ue.map(f => -f.teacher),
+                    type: 'bar',
+                    marker: {color: '#667eea'}
+                },
+                {
+                    name: 'Админ',
+                    x: formats,
+                    y: ue.map(f => -f.admin),
+                    type: 'bar',
+                    marker: {color: '#f59e0b'}
+                },
+                {
+                    name: 'CAC',
+                    x: formats,
+                    y: ue.map(f => -f.cac),
+                    type: 'bar',
+                    marker: {color: '#ec4899'}
+                },
+                {
+                    name: 'Агентство',
+                    x: formats,
+                    y: ue.map(f => -f.agency),
+                    type: 'bar',
+                    marker: {color: '#d73a49'}
+                }
+            ];
+
+            Plotly.newPlot('chart_structure', traces, {
+                title: 'Структура затрат по форматам',
+                barmode: 'relative',
+                yaxis: {title: 'Сумма (₽)'},
+                height: 350
+            }, {responsive: true});
+        }
+
+        function applyScenario(scenario) {
+            const inputs = {
+                optimal: {
+                    price_indiv_60: 3500,
+                    price_indiv_90: 5000,
+                    teacher_indiv_60: 2500,
+                    teacher_indiv_90: 3750,
+                    agency_commission: 10
+                },
+                no_agency: {
+                    agency_commission: 0
+                },
+                premium: {
+                    price_indiv_60: 4000,
+                    price_indiv_90: 5500,
+                    price_group_60: 2500,
+                    price_group_90: 3500
+                },
+                budget: {
+                    teacher_indiv_60: 2000,
+                    teacher_indiv_90: 3000,
+                    teacher_group_60: 3500,
+                    teacher_group_90: 4500
+                }
+            };
+
+            const changes = inputs[scenario];
+            Object.keys(changes).forEach(key => {
+                const input = document.getElementById(key);
+                if (input) {
+                    input.value = changes[key];
+                    updateValueDisplay(key, changes[key]);
+                }
+            });
+
+            calculate();
+        }
+
+        function resetToDefaults() {
+            Object.keys(defaults).forEach(key => {
+                const input = document.getElementById(key);
+                if (input) {
+                    input.value = defaults[key];
+                    updateValueDisplay(key, defaults[key]);
+                }
+            });
+            calculate();
+        }
+
+        window.addEventListener('load', initControls);
+    </script>
+</body>
+</html>
