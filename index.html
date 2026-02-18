@@ -467,4 +467,236 @@
 
             // Break-even calculation
             const avg_contribution_per_student = contribution_profit / p.total_students;
-            // How many students to cover Fixed
+            // How many students to cover Fixed Costs?
+            const break_even = avg_contribution_per_student > 0 ? Math.ceil(p.fixed_costs / avg_contribution_per_student) : 'н/д';
+            
+            document.getElementById('metric_break_even').textContent = (typeof break_even === 'number' && break_even < 1000 ? break_even : '∞') + ' студ/мес';
+
+            updateAlert('alert_container_combined', profit, margin_pct, ue);
+            updateCharts(ue, revenue, teacher_total, tax_total, cac_total, agency_total, p.fixed_costs, profit);
+        }
+
+        function calculateIndividual() {
+            const p = getParams();
+            const cac = p.cpl / p.conversion;
+            const tax_rate = 0.07;
+            const mix_60 = p.indiv_mix_60;
+            const n_60 = Math.round(p.total_students * mix_60);
+            const n_90 = p.total_students - n_60;
+
+            // Unit calc
+            const calcUnit = (price, teacher) => {
+                const ltv = price * 8;
+                const t_cost = teacher * 8;
+                const tax = ltv * tax_rate;
+                const agency = ltv * p.agency_commission;
+                const margin = ltv - t_cost - tax - cac - agency;
+                return { ltv, t_cost, tax, agency, margin };
+            };
+
+            const u60 = calcUnit(p.price_indiv_60, p.teacher_indiv_60);
+            const u90 = calcUnit(p.price_indiv_90, p.teacher_indiv_90);
+
+            const revenue = n_60 * u60.ltv + n_90 * u90.ltv;
+            const teacher_total = n_60 * u60.t_cost + n_90 * u90.t_cost;
+            const tax_total = revenue * tax_rate;
+            const cac_total = p.total_students * cac;
+            const agency_total = revenue * p.agency_commission;
+            
+            const contribution_profit = revenue - teacher_total - tax_total - cac_total - agency_total;
+            const profit = contribution_profit - p.fixed_costs;
+            const margin_pct = (profit / revenue) * 100;
+
+            document.getElementById('metric_revenue_indiv').textContent = Math.round(revenue).toLocaleString('ru-RU') + ' ₽';
+            document.getElementById('metric_profit_indiv').textContent = (profit >= 0 ? '+' : '') + Math.round(profit).toLocaleString('ru-RU') + ' ₽';
+            document.getElementById('metric_profit_pct_indiv').textContent = 'Маржа: ' + (profit >= 0 ? '+' : '') + margin_pct.toFixed(1) + '%';
+            document.getElementById('metric_profit_indiv_card').className = 'metric-card ' + (profit >= 0 ? 'positive' : 'negative');
+            
+            const avg_margin = contribution_profit / p.total_students;
+            document.getElementById('metric_avg_margin_indiv').textContent = (avg_margin >= 0 ? '+' : '') + Math.round(avg_margin).toLocaleString('ru-RU') + ' ₽';
+            
+            const break_even = avg_margin > 0 ? Math.ceil(p.fixed_costs / avg_margin) : 'н/д';
+            document.getElementById('metric_break_even_indiv').textContent = break_even + ' студ/мес';
+
+            const ue = [{ name: 'Индивид. 60 мин', margin: u60.margin }, { name: 'Индивид. 90 мин', margin: u90.margin }];
+            updateAlert('alert_container_individual', profit, margin_pct, ue);
+
+            drawSimpleCharts('chart_indiv_margin', 'chart_indiv_pnl', ue, revenue, teacher_total, tax_total, cac_total, agency_total, p.fixed_costs, profit, 'Только индивидуальные');
+        }
+
+        function calculateGroup() {
+            const p = getParams();
+            const cac = p.cpl / p.conversion;
+            const tax_rate = 0.07;
+            const mix_60 = p.group_mix_60;
+            const n_60 = Math.round(p.total_students * mix_60);
+            const n_90 = p.total_students - n_60;
+
+            const calcUnit = (price, teacher) => {
+                const ltv = price * 8;
+                const t_cost = (teacher * 8) / p.group_size;
+                const tax = ltv * tax_rate;
+                const agency = ltv * p.agency_commission;
+                const margin = ltv - t_cost - tax - cac - agency;
+                return { ltv, t_cost, tax, agency, margin };
+            };
+
+            const u60 = calcUnit(p.price_group_60, p.teacher_group_60);
+            const u90 = calcUnit(p.price_group_90, p.teacher_group_90);
+
+            const revenue = n_60 * u60.ltv + n_90 * u90.ltv;
+            const teacher_total = n_60 * u60.t_cost + n_90 * u90.t_cost;
+            const tax_total = revenue * tax_rate;
+            const cac_total = p.total_students * cac;
+            const agency_total = revenue * p.agency_commission;
+
+            const contribution_profit = revenue - teacher_total - tax_total - cac_total - agency_total;
+            const profit = contribution_profit - p.fixed_costs;
+            const margin_pct = (profit / revenue) * 100;
+
+            document.getElementById('metric_revenue_group').textContent = Math.round(revenue).toLocaleString('ru-RU') + ' ₽';
+            document.getElementById('metric_profit_group').textContent = (profit >= 0 ? '+' : '') + Math.round(profit).toLocaleString('ru-RU') + ' ₽';
+            document.getElementById('metric_profit_pct_group').textContent = 'Маржа: ' + (profit >= 0 ? '+' : '') + margin_pct.toFixed(1) + '%';
+            document.getElementById('metric_profit_group_card').className = 'metric-card ' + (profit >= 0 ? 'positive' : 'negative');
+            
+            const avg_margin = contribution_profit / p.total_students;
+            document.getElementById('metric_avg_margin_group').textContent = (avg_margin >= 0 ? '+' : '') + Math.round(avg_margin).toLocaleString('ru-RU') + ' ₽';
+            
+            const break_even = avg_margin > 0 ? Math.ceil(p.fixed_costs / avg_margin) : 'н/д';
+            document.getElementById('metric_break_even_group').textContent = break_even + ' студ/мес';
+
+            const ue = [{ name: 'Группа 60 мин', margin: u60.margin }, { name: 'Группа 90 мин', margin: u90.margin }];
+            updateAlert('alert_container_group', profit, margin_pct, ue);
+            
+            drawSimpleCharts('chart_group_margin', 'chart_group_pnl', ue, revenue, teacher_total, tax_total, cac_total, agency_total, p.fixed_costs, profit, 'Только мини-группы');
+        }
+
+        function calculateComparison() {
+            const p = getParams();
+            const cac = p.cpl / p.conversion;
+            const tax_rate = 0.07;
+
+            // Common calc function
+            const getScenarioStats = (isGroup) => {
+                const mix_60 = isGroup ? p.group_mix_60 : p.indiv_mix_60;
+                const price_60 = isGroup ? p.price_group_60 : p.price_indiv_60;
+                const price_90 = isGroup ? p.price_group_90 : p.price_indiv_90;
+                const teach_60 = isGroup ? p.teacher_group_60 : p.teacher_indiv_60;
+                const teach_90 = isGroup ? p.teacher_group_90 : p.teacher_indiv_90;
+                const divisor = isGroup ? p.group_size : 1;
+
+                const revenue = p.total_students * 8 * (mix_60 * price_60 + (1-mix_60) * price_90);
+                const teacher = p.total_students * 8 * (mix_60 * teach_60 + (1-mix_60) * teach_90) / divisor;
+                const tax = revenue * tax_rate;
+                const agency = revenue * p.agency_commission;
+                const cac_total = p.total_students * cac;
+                
+                const contribution = revenue - teacher - tax - agency - cac_total;
+                const profit = contribution - p.fixed_costs;
+                const margin = (profit / revenue) * 100;
+                
+                return { revenue, teacher, tax, agency, cac_total, profit, margin };
+            };
+
+            const sIndiv = getScenarioStats(false);
+            const sGroup = getScenarioStats(true);
+
+            const renderStats = (id, data) => {
+                document.getElementById(id).innerHTML = `
+                    <div class="stat-row"><span class="stat-label">Выручка/мес</span><span class="stat-value">${Math.round(data.revenue).toLocaleString('ru-RU')} ₽</span></div>
+                    <div class="stat-row"><span class="stat-label">Расход преподаватели</span><span class="stat-value">−${Math.round(data.teacher).toLocaleString('ru-RU')} ₽</span></div>
+                    <div class="stat-row"><span class="stat-label">Налоги (7%)</span><span class="stat-value">−${Math.round(data.tax).toLocaleString('ru-RU')} ₽</span></div>
+                    <div class="stat-row"><span class="stat-label">Пост. расходы</span><span class="stat-value">−${Math.round(p.fixed_costs).toLocaleString('ru-RU')} ₽</span></div>
+                    <div class="stat-row"><span class="stat-label">Чистая прибыль</span><span class="stat-value ${data.profit >= 0 ? 'positive' : 'negative'}">${(data.profit >= 0 ? '+' : '')}${Math.round(data.profit).toLocaleString('ru-RU')} ₽</span></div>
+                    <div class="stat-row"><span class="stat-label">Маржинальность</span><span class="stat-value ${data.margin >= 0 ? 'positive' : 'negative'}">${data.margin.toFixed(1)}%</span></div>
+                `;
+            };
+
+            renderStats('comparison_individual_stats', sIndiv);
+            renderStats('comparison_group_stats', sGroup);
+
+            // Chart Comparison
+             Plotly.newPlot('chart_comparison', [{
+                x: ['Только индивидуальные', 'Только мини-группы'],
+                y: [sIndiv.profit, sGroup.profit],
+                type: 'bar',
+                text: [Math.round(sIndiv.profit) + ' ₽', Math.round(sGroup.profit) + ' ₽'],
+                textposition: 'outside',
+                marker: { color: [sIndiv.profit >= 0 ? '#667eea' : '#d73a49', sGroup.profit >= 0 ? '#28a745' : '#d73a49'] }
+            }], { title: 'Чистая прибыль (после пост. расходов)', yaxis: {title: 'Рубли'}, height: 400 });
+
+             Plotly.newPlot('chart_comparison_revenue', [
+                { x: ['Индив.', 'Группы'], y: [sIndiv.revenue, sGroup.revenue], name: 'Выручка', type: 'bar', marker: {color: '#667eea'} },
+                { x: ['Индив.', 'Группы'], y: [sIndiv.revenue - sIndiv.profit, sGroup.revenue - sGroup.profit], name: 'Все расходы', type: 'bar', marker: {color: '#d73a49'} }
+             ], { title: 'Выручка vs Расходы', barmode: 'group', height: 400 });
+        }
+
+        function updateAlert(id, profit, margin, ue) {
+            const el = document.getElementById(id);
+            if (profit < 0) el.innerHTML = `<div class="alert danger"><strong>🔴 Убыточная модель!</strong> Чистый убыток ${Math.round(Math.abs(profit))} ₽.</div>`;
+            else if (margin < 15) el.innerHTML = `<div class="alert warning"><strong>🟡 Низкая маржа</strong> (${margin.toFixed(1)}%). Рискованно.</div>`;
+            else el.innerHTML = `<div class="alert success"><strong>🟢 Прибыльная модель</strong>. Маржа ${margin.toFixed(1)}%.</div>`;
+        }
+
+        function updateCharts(ue, rev, teach, tax, cac, ag, fixed, prof) {
+            // Margin bar
+            Plotly.newPlot('chart_margin', [{
+                x: ue.map(f => f.name), y: ue.map(f => f.margin), type: 'bar',
+                marker: { color: ue.map(f => f.margin >= 0 ? '#28a745' : '#d73a49') }
+            }], { title: 'Contribution Margin на 1 студента', height: 350 });
+
+            // P&L Waterfall
+            Plotly.newPlot('chart_pnl', [{
+                x: ['Выручка', 'Преподаватели', 'Налог (7%)', 'CAC', 'Агентство', 'Пост. расходы', 'Прибыль'],
+                y: [rev, -teach, -tax, -cac, -ag, -fixed, prof],
+                type: 'bar',
+                text: [Math.round(rev), Math.round(-teach), Math.round(-tax), Math.round(-cac), Math.round(-ag), Math.round(-fixed), Math.round(prof)],
+                textposition: 'outside',
+                marker: { color: ['#28a745', '#d73a49', '#f59e0b', '#d73a49', '#d73a49', '#667eea', prof>=0?'#28a745':'#d73a49'] }
+            }], { title: 'P&L (Отчет о прибылях и убытках)', height: 350 });
+
+            // Structure
+            Plotly.newPlot('chart_structure', [
+                { name: 'LTV', x: ue.map(f=>f.name), y: ue.map(f=>f.ltv), type: 'bar', marker:{color:'#28a745'}},
+                { name: 'Учитель', x: ue.map(f=>f.name), y: ue.map(f=>-f.teacher), type: 'bar', marker:{color:'#667eea'}},
+                { name: 'Налог', x: ue.map(f=>f.name), y: ue.map(f=>-f.tax), type: 'bar', marker:{color:'#f59e0b'}},
+                { name: 'CAC', x: ue.map(f=>f.name), y: ue.map(f=>-f.cac), type: 'bar', marker:{color:'#ec4899'}},
+                { name: 'Агент', x: ue.map(f=>f.name), y: ue.map(f=>-f.agency), type: 'bar', marker:{color:'#d73a49'}}
+            ], { title: 'Структура Unit-экономики', barmode: 'relative', height: 350 });
+        }
+
+        function drawSimpleCharts(idMarg, idPnl, ue, rev, teach, tax, cac, ag, fixed, prof, title) {
+             Plotly.newPlot(idMarg, [{
+                x: ue.map(f => f.name), y: ue.map(f => f.margin), type: 'bar',
+                marker: { color: ue.map(f => f.margin >= 0 ? '#28a745' : '#d73a49') }
+            }], { title: 'Contribution Margin на 1 студента', height: 350 });
+
+             Plotly.newPlot(idPnl, [{
+                x: ['Выручка', 'Преподаватели', 'Налог', 'CAC', 'Агентство', 'Fixed', 'Прибыль'],
+                y: [rev, -teach, -tax, -cac, -ag, -fixed, prof],
+                type: 'bar',
+                marker: { color: ['#28a745', '#d73a49', '#f59e0b', '#d73a49', '#d73a49', '#667eea', prof>=0?'#28a745':'#d73a49'] }
+            }], { title: 'P&L: ' + title, height: 350 });
+        }
+
+        function applyScenario(s) {
+            const set = (k, v) => { document.getElementById(k).value = v; updateValueDisplay(k, v); };
+            if(s==='optimal') { set('price_indiv_60',3500); set('price_indiv_90',5000); set('teacher_indiv_60',2500); set('agency_commission',10); }
+            if(s==='no_agency') set('agency_commission', 0);
+            if(s==='premium') { set('price_indiv_60',4000); set('price_indiv_90',5500); set('price_group_60',2500); }
+            if(s==='budget') { set('teacher_indiv_60',2000); set('teacher_indiv_90',3000); }
+            calculate();
+        }
+
+        function resetToDefaults() {
+            Object.keys(defaults).forEach(key => {
+                const el = document.getElementById(key);
+                if(el) { el.value = defaults[key]; updateValueDisplay(key, defaults[key]); }
+            });
+            calculate();
+        }
+
+        window.addEventListener('load', initControls);
+    </script>
+</body>
+</html>
